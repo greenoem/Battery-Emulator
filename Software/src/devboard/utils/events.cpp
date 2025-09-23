@@ -67,6 +67,7 @@ void init_events(void) {
   events.entries[EVENT_BATTERY_UNDERVOLTAGE].level = EVENT_LEVEL_WARNING;
   events.entries[EVENT_BATTERY_VALUE_UNAVAILABLE].level = EVENT_LEVEL_WARNING;
   events.entries[EVENT_BATTERY_ISOLATION].level = EVENT_LEVEL_WARNING;
+  events.entries[EVENT_BATTERY_SOC_CHANGE].level = EVENT_LEVEL_INFO;
   events.entries[EVENT_VOLTAGE_DIFFERENCE].level = EVENT_LEVEL_INFO;
   events.entries[EVENT_SOH_DIFFERENCE].level = EVENT_LEVEL_WARNING;
   events.entries[EVENT_SOH_LOW].level = EVENT_LEVEL_ERROR;
@@ -244,6 +245,8 @@ String get_event_message_string(EVENTS_ENUM_TYPE event) {
       return "Battery measurement unavailable. Check 12V power supply and battery wiring!";
     case EVENT_BATTERY_ISOLATION:
       return "Battery reports isolation error. High voltage might be leaking to ground. Check battery!";
+    case EVENT_BATTERY_SOC_CHANGE:
+      return "The BMS updated the HV battery State of Charge (SOC) by more than 3% based on SocByOcv.";
     case EVENT_VOLTAGE_DIFFERENCE:
       return "Too large voltage diff between the batteries. Second battery cannot join the DC-link";
     case EVENT_SOH_DIFFERENCE:

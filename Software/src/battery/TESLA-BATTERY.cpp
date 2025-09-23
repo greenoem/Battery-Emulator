@@ -10,6 +10,21 @@
 /* Some of the original CAN frame parsing code below comes from Per Carlen's bms_comms_tesla_model3.py (https://gitlab.com/pelle8/batt2gen24/) */
 /* Most of the additional CAN frame parsing/information/display comes from Josiah Higgs (https://github.com/josiahhiggs/) */
 
+inline const char* getVehicleState(int index) {
+  switch (index) {
+    case 0:
+      return "CAR_OFF";
+    case 1:
+      return "CAR_DRIVE";
+    case 2:
+      return "ACCESSORY";
+    case 3:
+      return "GOING_DOWN";
+    default:
+      return "UNKNOWN";
+  }
+}
+
 inline const char* getContactorText(int index) {
   switch (index) {
     case 0:
@@ -677,8 +692,15 @@ void TeslaBattery::
     clear_event(EVENT_BATTERY_FUSE);
   }
 
+  // Raise any informational Tesla BMS events in BE
+  if (BMS_a145_SW_SOC_Change == true) {  // BMS has recalibrated pack SOC
+    set_event(EVENT_BATTERY_SOC_CHANGE, 0);
+  } else {
+    clear_event(EVENT_BATTERY_SOC_CHANGE);
+  }
+
   if (user_selected_tesla_GTW_chassisType > 1) {  //{{0, "Model S"}, {1, "Model X"}, {2, "Model 3"}, {3, "Model Y"}};
-    // Autodetect algoritm for chemistry on 3/Y packs.
+    // Autodetect algorithm for chemistry on 3/Y packs.
     // NCM/A batteries have 96s, LFP has 102-108s
     // Drawback with this check is that it takes 3-5minutes before all cells have been counted!
     if (datalayer.battery.info.number_of_cells > 101) {
@@ -972,7 +994,7 @@ void TeslaBattery::
   datalayer_extended.tesla.HVP_shuntBarTempStatus = HVP_shuntBarTempStatus;
   datalayer_extended.tesla.HVP_shuntAsicTempStatus = HVP_shuntAsicTempStatus;
 
-  //Safety checks for CAN message sesnding
+  //Safety checks for CAN message sending
   if ((datalayer.system.status.inverter_allows_contactor_closing == true) &&
       (datalayer.battery.status.bms_status != FAULT) && (!datalayer.system.settings.equipment_stop_active)) {
     // Carry on: 0x221 DRIVE state & reset power down timer
@@ -996,6 +1018,8 @@ void TeslaBattery::
   }
 
   printFaultCodesIfActive();
+  logging.printf("Vehicle State (Emulated): ");
+  logging.println(getVehicleState(vehicleState));
   logging.printf("BMS Contactors State: ");
   logging.printf(getBMSContactorState(battery_contactor));  // Display what state the BMS thinks the contactors are in
   logging.printf(", HVIL: ");

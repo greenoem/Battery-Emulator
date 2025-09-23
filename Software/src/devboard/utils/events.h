@@ -49,6 +49,7 @@
   XX(EVENT_BATTERY_ISOLATION)           \
   XX(EVENT_BATTERY_REQUESTS_HEAT)       \
   XX(EVENT_BATTERY_WARMED_UP)           \
+  XX(EVENT_BATTERY_SOC_CHANGE)          \
   XX(EVENT_VOLTAGE_DIFFERENCE)          \
   XX(EVENT_SOH_DIFFERENCE)              \
   XX(EVENT_SOH_LOW)                     \
