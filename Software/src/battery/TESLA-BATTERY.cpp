@@ -2591,7 +2591,7 @@ void TeslaBattery::printFaultCodesIfActive() {
   printDebugIfActive(BMS_a139_SW_DC_Link_V_Irrational, "ERROR: BMS_a139_SW_DC_Link_V_Irrational");
   printDebugIfActive(BMS_a141_SW_BMB_Status_Warning, "ERROR: BMS_a141_SW_BMB_Status_Warning");
   printDebugIfActive(BMS_a144_Hvp_Config_Mismatch, "ERROR: BMS_a144_Hvp_Config_Mismatch");
-  printDebugIfActive(BMS_a145_SW_SOC_Change, "ERROR: BMS_a145_SW_SOC_Change");
+  printDebugIfActive(BMS_a145_SW_SOC_Change, "INFO: BMS_a145_SW_SOC_Change");
   printDebugIfActive(BMS_a146_SW_Brick_Overdischarged, "ERROR: BMS_a146_SW_Brick_Overdischarged");
   printDebugIfActive(BMS_a149_SW_Missing_Config_Block, "ERROR: BMS_a149_SW_Missing_Config_Block");
   printDebugIfActive(BMS_a151_SW_external_isolation, "ERROR: BMS_a151_SW_external_isolation");
