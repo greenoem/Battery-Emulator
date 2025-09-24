@@ -2018,7 +2018,7 @@ int index_118 = 0;
 void TeslaBattery::transmit_can(unsigned long currentMillis) {
 
   if (user_selected_tesla_digital_HVIL) {  //Special S/X? mode for 2024+ batteries
-    if ((datalayer.system.status.inverter_allows_contactor_closing) && (datalayer.battery.status.bms_status != FAULT)) {
+/*     if ((datalayer.system.status.inverter_allows_contactor_closing) && (datalayer.battery.status.bms_status != FAULT)) {
       if (currentMillis - lastSend1CF >= 10) {
         transmit_can_frame(&can_msg_1CF[index_1CF]);
 
@@ -2035,7 +2035,7 @@ void TeslaBattery::transmit_can(unsigned long currentMillis) {
     } else {
       index_1CF = 0;
       index_118 = 0;
-    }
+    } */
   }
 
   //Send 10ms messages
