@@ -1185,7 +1185,7 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
       //BMS_state = // Original code from older DBCs
       //((rx_frame.data.u8[1] >> 3) &
       //(0x0FU));  //0 "STANDBY" 1 "DRIVE" 2 "SUPPORT" 3 "CHARGE" 4 "FEIM" 5 "CLEAR_FAULT" 6 "FAULT" 7 "WELD" 8 "TEST" 9 "SNA" ;
-      BMS_state = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 31, 4));
+      BMS_state = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 32, 4));
       //0 "STANDBY" 1 "DRIVE" 2 "SUPPORT" 3 "CHARGE" 4 "FEIM" 5 "CLEAR_FAULT" 6 "FAULT" 7 "WELD" 8 "TEST" 9 "SNA" 10 "BMS_DIAG";
       BMS_hvState = (rx_frame.data.u8[2] & (0x07U));
       //0 "DOWN" 1 "COMING_UP" 2 "GOING_DOWN" 3 "UP_FOR_DRIVE" 4 "UP_FOR_CHARGE" 5 "UP_FOR_DC_CHARGE" 6 "UP" ;
@@ -1195,7 +1195,7 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
       //BMS_chargeRequest = ((rx_frame.data.u8[3] >> 5) & (0x01U));
       BMS_chargeRequest = static_cast<bool>(extract_signal_value(rx_frame.data.u8, 29, 1));
       BMS_keepWarmRequest = ((rx_frame.data.u8[3] >> 6) & (0x01U));
-      BMS_uiChargeStatus = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 32, 3));
+      BMS_uiChargeStatus = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 11, 3));
       //BMS_uiChargeStatus =
       //(rx_frame.data.u8[4] &
       //(0x07U));
