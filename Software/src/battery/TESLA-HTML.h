@@ -270,6 +270,8 @@ class TeslaHtmlRenderer : public BatteryHtmlRenderer {
     content += "<h4>BMS_buildConfigId: " + String(datalayer_extended.tesla.BMS_info_buildConfigId) + "</h4>";
     content += "<h4>BMS_hardwareId: " + String(datalayer_extended.tesla.BMS_info_hardwareId) + "</h4>";
     content += "<h4>BMS_componentId: " + String(datalayer_extended.tesla.BMS_info_componentId) + "</h4>";
+    content += "<h4>BMS_usageId: " + String(datalayer_extended.tesla.BMS_info_usageId) + "</h4>";
+    content += "<h4>BMS_subUsageId: " + String(datalayer_extended.tesla.BMS_info_subUsageId) + "</h4>";
     content += "<h4>BMS PCS PWM Enabled: " + String(Fault[datalayer_extended.tesla.BMS_pcsPwmEnabled]) + "</h4>";
     //0x292 658 BMS_socStates
     content += "<h4>Battery Beginning of Life: " + String(beginning_of_life) + " kWh</h4>";

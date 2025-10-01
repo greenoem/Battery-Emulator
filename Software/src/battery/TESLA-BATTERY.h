@@ -573,15 +573,15 @@ class TeslaBattery : public CanBattery {
   uint16_t BMS_info_buildConfigId = 0;
   uint16_t BMS_info_hardwareId = 0;
   uint16_t BMS_info_componentId = 0;
-  uint8_t BMS_info_pcbaId = 0;
-  uint8_t BMS_info_assemblyId = 0;
+  //uint8_t BMS_info_pcbaId = 0;
+  //uint8_t BMS_info_assemblyId = 0;
   uint16_t BMS_info_usageId = 0;
   uint16_t BMS_info_subUsageId = 0;
-  uint8_t BMS_info_platformType = 0;
-  uint32_t BMS_info_appCrc = 0;
-  uint64_t BMS_info_bootGitHash = 0;
-  uint8_t BMS_info_bootUdsProtoVersion = 0;
-  uint32_t BMS_info_bootCrc = 0;
+  //uint8_t BMS_info_platformType = 0;
+  //uint32_t BMS_info_appCrc = 0;
+  //uint64_t BMS_info_bootGitHash = 0;
+  //uint8_t BMS_info_bootUdsProtoVersion = 0;
+  //uint32_t BMS_info_bootCrc = 0;
   //0x212: 530 BMS_status
   bool BMS_hvacPowerRequest = false;          //Change to bool
   bool BMS_notEnoughPowerForDrive = false;    //Change to bool
@@ -591,7 +591,7 @@ class TeslaBattery : public CanBattery {
   bool BMS_activeHeatingWorthwhile = false;   //Change to bool
   bool BMS_cpMiaOnHvs = false;                //Change to bool
   uint8_t BMS_contactorState = 0;
-  uint8_t BMS_state = 0;
+  uint8_t BMS_state = 9;  // Default to SNA
   uint8_t BMS_hvState = 0;
   uint16_t BMS_isolationResistance = 0;
   bool BMS_chargeRequest = false;    //Change to bool

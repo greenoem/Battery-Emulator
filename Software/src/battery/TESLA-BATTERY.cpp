@@ -134,6 +134,21 @@ inline const char* getBMSContactorState(int index) {
   }
 }
 
+inline const char* getVehicleState(int index) {
+  switch (index) {
+    case 0:
+      return "OFF";
+    case 1:
+      return "DRIVE";
+    case 2:
+      return "ACCESSORY";
+    case 3:
+      return "GOING_DOWN";
+    default:
+      return "UNKNOWN";
+  }
+}
+
 inline const char* getNoYes(bool value) {
   return value ? "Yes" : "No";
 }
@@ -266,7 +281,7 @@ void generateFrameCounterChecksum(CAN_frame& f,
 // Function to extract raw bits/values from a given CAN frame signal
 inline uint64_t extract_signal_value(const uint8_t* data, uint32_t start_bit, uint32_t bit_length) {
   //
-  // Usage: uint8_t bms_state = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 31, 4));
+  // Usage: uint8_t bms_state = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 32, 4));
   //
   // Calculate the starting byte and bit offset
   uint32_t byte_index = start_bit / 8;
@@ -487,13 +502,13 @@ void TeslaBattery::
   // Events: Informational
   if (BMS_a145_SW_SOC_Change) {                             // BMS has newly recalibrated pack SOC
     set_event_latched(EVENT_BATTERY_SOC_RECALIBRATION, 0);  // Latcched as BMS_a145 can be active for a while
-  } else if (!BMS_a145_SW_SOC_Change) {
+  } else {
     clear_event(EVENT_BATTERY_SOC_RECALIBRATION);
   }
   // Events: Warning
   if (BMS_contactorState == 5) {  // BMS has detected welded contactor(s)
     set_event_latched(EVENT_CONTACTOR_WELDED, 0);
-  } else if (BMS_contactorState != 5) {
+  } else {
     clear_event(EVENT_CONTACTOR_WELDED);
   }
 
@@ -566,9 +581,13 @@ void TeslaBattery::
     }
   }
 
-  //Update 0x333 UI_chargeTerminationPct (bit 16, width 10) value to SOC max value - expose via UI?
+  //Update 0x333 UI_chargeTerminationPct (bit 16, width 10) value to SOC max value
   //One firmware version this was seen at bit 17 width 11
-  write_signal_value(&TESLA_333, 16, 10, static_cast<int64_t>(datalayer.battery.settings.max_percentage / 10), false);
+  //Only write signal value if SOC max_percentage in BE has changed
+  if (previous_max_percentage != datalayer.battery.settings.max_percentage) {
+    write_signal_value(&TESLA_333, 16, 10, static_cast<int64_t>(datalayer.battery.settings.max_percentage / 10), false);
+    previous_max_percentage = datalayer.battery.settings.max_percentage;
+  }
 
   // Update webserver datalayer
   //datalayer_extended.tesla.BMS_hvilFault = BMS_a036_SW_HvpHvilFault;
@@ -585,7 +604,8 @@ void TeslaBattery::
   datalayer_extended.tesla.battery_packCtrsResetRequestRequired = battery_packCtrsResetRequestRequired;
   datalayer_extended.tesla.battery_dcLinkAllowedToEnergize = battery_dcLinkAllowedToEnergize;
   //0x72A
-  if (parsed_battery_serialNumber && battery_serialNumber[13] != 0) {
+  if (datalayer_extended.tesla.battery_serialNumber[0] == 0 && parsed_battery_serialNumber &&
+      battery_serialNumber[13] != 0) {
     memcpy(datalayer_extended.tesla.battery_serialNumber, battery_serialNumber, sizeof(battery_serialNumber));
     datalayer_extended.tesla.battery_manufactureDate = battery_manufactureDate;
     //We have valid data and comms with the battery, attempt to query part number
@@ -594,11 +614,11 @@ void TeslaBattery::
     }
   }
   //Via UDS
-  if (parsed_battery_partNumber && battery_partNumber[11] != 0) {
+  if (datalayer_extended.tesla.battery_partNumber[0] == 0 && parsed_battery_partNumber && battery_partNumber[11] != 0) {
     memcpy(datalayer_extended.tesla.battery_partNumber, battery_partNumber, sizeof(battery_partNumber));
   }
   //0x3C4
-  if (parsed_PCS_partNumber && PCS_partNumber[11] != 0) {
+  if (datalayer_extended.tesla.PCS_partNumber[0] == 0 && parsed_PCS_partNumber && PCS_partNumber[11] != 0) {
     memcpy(datalayer_extended.tesla.PCS_partNumber, PCS_partNumber, sizeof(PCS_partNumber));
   }
   //0x2B4
@@ -685,15 +705,15 @@ void TeslaBattery::
   datalayer_extended.tesla.BMS_info_buildConfigId = BMS_info_buildConfigId;
   datalayer_extended.tesla.BMS_info_hardwareId = BMS_info_hardwareId;
   datalayer_extended.tesla.BMS_info_componentId = BMS_info_componentId;
-  datalayer_extended.tesla.BMS_info_pcbaId = BMS_info_pcbaId;
-  datalayer_extended.tesla.BMS_info_assemblyId = BMS_info_assemblyId;
+  //datalayer_extended.tesla.BMS_info_pcbaId = BMS_info_pcbaId;
+  //datalayer_extended.tesla.BMS_info_assemblyId = BMS_info_assemblyId;
   datalayer_extended.tesla.BMS_info_usageId = BMS_info_usageId;
   datalayer_extended.tesla.BMS_info_subUsageId = BMS_info_subUsageId;
-  datalayer_extended.tesla.BMS_info_platformType = BMS_info_platformType;
-  datalayer_extended.tesla.BMS_info_appCrc = BMS_info_appCrc;
-  datalayer_extended.tesla.BMS_info_bootGitHash = BMS_info_bootGitHash;
-  datalayer_extended.tesla.BMS_info_bootUdsProtoVersion = BMS_info_bootUdsProtoVersion;
-  datalayer_extended.tesla.BMS_info_bootCrc = BMS_info_bootCrc;
+  //datalayer_extended.tesla.BMS_info_platformType = BMS_info_platformType;
+  //datalayer_extended.tesla.BMS_info_appCrc = BMS_info_appCrc;
+  //datalayer_extended.tesla.BMS_info_bootGitHash = BMS_info_bootGitHash;
+  //datalayer_extended.tesla.BMS_info_bootUdsProtoVersion = BMS_info_bootUdsProtoVersion;
+  //datalayer_extended.tesla.BMS_info_bootCrc = BMS_info_bootCrc;
   //0x312
   datalayer_extended.tesla.BMS_powerDissipation = BMS_powerDissipation;
   datalayer_extended.tesla.BMS_flowRequest = BMS_flowRequest;
@@ -801,26 +821,28 @@ void TeslaBattery::
   if ((datalayer.system.status.inverter_allows_contactor_closing == true) &&
       (datalayer.battery.status.bms_status != FAULT) && (!datalayer.system.settings.equipment_stop_active)) {
     // Carry on: 0x221 DRIVE state & reset power down timer
-    vehicleState = CAR_DRIVE;
+    vehicleState = 1;
     powerDownSeconds = 9;
   } else {
     // Faulted state, or inverter blocks contactor closing
     // Shut down: 0x221 ACCESSORY state for 3 seconds, followed by GOING_DOWN, then OFF
     if (powerDownSeconds <= 9 && powerDownSeconds > 6) {
-      vehicleState = ACCESSORY;
+      vehicleState = 2;
       powerDownSeconds--;
     }
     if (powerDownSeconds <= 6 && powerDownSeconds > 3) {
-      vehicleState = GOING_DOWN;
+      vehicleState = 3;
       powerDownSeconds--;
     }
     if (powerDownSeconds <= 3 && powerDownSeconds > 0) {
-      vehicleState = CAR_OFF;
+      vehicleState = 0;
       powerDownSeconds--;
     }
   }
 
   printFaultCodesIfActive();
+  logging.printf("Vehicle State: ");
+  logging.println(getVehicleState(vehicleState));
   logging.printf("Contactor State: ");
   logging.printf(getBMSContactorState(battery_contactor));  // Display what state the BMS thinks the contactors are in
   logging.printf(" HVIL: ");
@@ -951,17 +973,19 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
       //BMS_state = // Original code from older DBCs
       //((rx_frame.data.u8[1] >> 3) &
       //(0x0FU));  //0 "STANDBY" 1 "DRIVE" 2 "SUPPORT" 3 "CHARGE" 4 "FEIM" 5 "CLEAR_FAULT" 6 "FAULT" 7 "WELD" 8 "TEST" 9 "SNA" ;
-      BMS_state = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 31, 4));
+      //BMS_state = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 32, 4));
+      BMS_state = (rx_frame.data.u8[4] & (0x0F));
       //0 "STANDBY" 1 "DRIVE" 2 "SUPPORT" 3 "CHARGE" 4 "FEIM" 5 "CLEAR_FAULT" 6 "FAULT" 7 "WELD" 8 "TEST" 9 "SNA" 10 "BMS_DIAG";
       BMS_hvState = (rx_frame.data.u8[2] & (0x07U));
       //0 "DOWN" 1 "COMING_UP" 2 "GOING_DOWN" 3 "UP_FOR_DRIVE" 4 "UP_FOR_CHARGE" 5 "UP_FOR_DC_CHARGE" 6 "UP" ;
       BMS_isolationResistance =
           ((rx_frame.data.u8[3] & (0x1FU)) << 5) |
           ((rx_frame.data.u8[2] >> 3) & (0x1FU));  //19|10@1+ (10,0) [0|0] "kOhm"/to datalayer_extended
-      //BMS_chargeRequest = ((rx_frame.data.u8[3] >> 5) & (0x01U));
-      BMS_chargeRequest = static_cast<bool>(extract_signal_value(rx_frame.data.u8, 29, 1));
+      BMS_chargeRequest = ((rx_frame.data.u8[3] >> 5) & (0x01U));
+      //BMS_chargeRequest = static_cast<bool>(extract_signal_value(rx_frame.data.u8, 29, 1));
       BMS_keepWarmRequest = ((rx_frame.data.u8[3] >> 6) & (0x01U));
-      BMS_uiChargeStatus = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 32, 3));
+      //BMS_uiChargeStatus = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 32, 3));
+      BMS_uiChargeStatus = ((rx_frame.data.u8[1] >> 3) & (0x07U));
       //BMS_uiChargeStatus =
       //(rx_frame.data.u8[4] &
       //(0x07U));
@@ -1573,13 +1597,18 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
           BMS_info_componentId = static_cast<uint16_t>(extract_signal_value(rx_frame.data.u8, 48, 16));
         }
       }
-      /*
-      if (rx_frame.data.u8[0] == 0x0B) { // Mux 11: PCBAID_ASSYID_USAGEID
-        if (BMS_info_pcbaId == 0) {BMS_info_pcbaId = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 16, 8));}
-        if (BMS_info_assemblyId == 0) {BMS_info_assemblyId = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 24, 8));}
-        if (BMS_info_usageId == 0) {BMS_info_usageId = static_cast<uint16_t>(extract_signal_value(rx_frame.data.u8, 32, 16));}
-        if (BMS_info_subUsageId == 0) {BMS_info_subUsageId = static_cast<uint16_t>(extract_signal_value(rx_frame.data.u8, 48, 16));}
+
+      if (rx_frame.data.u8[0] == 0x0B) {  // Mux 11: PCBAID_ASSYID_USAGEID
+        //if (BMS_info_pcbaId == 0) {BMS_info_pcbaId = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 16, 8));}
+        //if (BMS_info_assemblyId == 0) {BMS_info_assemblyId = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 24, 8));}
+        if (BMS_info_usageId == 0) {
+          BMS_info_usageId = static_cast<uint16_t>(extract_signal_value(rx_frame.data.u8, 32, 16));
+        }
+        if (BMS_info_subUsageId == 0) {
+          BMS_info_subUsageId = static_cast<uint16_t>(extract_signal_value(rx_frame.data.u8, 48, 16));
+        }
       }
+      /*
       if (rx_frame.data.u8[0] == 0x0D) { // Mux 13: APP_CRC
         if (BMS_info_platformType == 0) {BMS_info_platformType = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 8, 8));}
         if (BMS_info_appCrc == 0) {BMS_info_appCrc = static_cast<uint32_t>(extract_signal_value(rx_frame.data.u8, 32, 32));}
@@ -1810,6 +1839,37 @@ void TeslaBattery::transmit_can(unsigned long currentMillis) {
     }
 
     //0x2E1 VCFRONT_status
+    const CAN_frame* t_2E1 = nullptr;
+    uint8_t idx = muxNumber_TESLA_2E1;
+    muxNumber_TESLA_2E1 = (idx == 5) ? 0 : static_cast<uint8_t>(idx + 1);
+
+    switch (idx) {
+      case 0:
+        t_2E1 = &TESLA_2E1_VEHICLE_AND_RAILS;
+        break;
+      case 1:
+        t_2E1 = &TESLA_2E1_HOMELINK;
+        break;
+      case 2:
+        t_2E1 = &TESLA_2E1_REFRIGERANT_SYSTEM;
+        break;
+      case 3:
+        t_2E1 = &TESLA_2E1_LV_BATTERY_DEBUG;
+        break;
+      case 4:
+        t_2E1 = &TESLA_2E1_MUX_5;
+        break;
+      case 5:
+        t_2E1 = &TESLA_2E1_BODY_CONTROLS;
+        break;
+    }
+
+    if (t_2E1) {
+      CAN_frame sf_2E1 = *t_2E1;
+      transmit_can_frame(&sf_2E1);
+    }
+    /*
+    //0x2E1 VCFRONT_status
     switch (muxNumber_TESLA_2E1) {
       case 0:
         transmit_can_frame(&TESLA_2E1_VEHICLE_AND_RAILS);
@@ -1838,6 +1898,7 @@ void TeslaBattery::transmit_can(unsigned long currentMillis) {
       default:
         break;
     }
+*/
     //Generate next frames
     generateFrameCounterChecksum(TESLA_118, 8, 4, 0, 8);
   }
@@ -1847,12 +1908,43 @@ void TeslaBattery::transmit_can(unsigned long currentMillis) {
     previousMillis50 = currentMillis;
 
     //0x221 VCFRONT_LVPowerState
-    if (vehicleState == CAR_DRIVE) {
+    uint8_t idx = muxNumber_TESLA_221;
+    muxNumber_TESLA_221 ^= 1;
+
+    const CAN_frame* t_221 = nullptr;
+    switch (vehicleState) {
+      case 0:
+        t_221 = (idx == 0) ? &TESLA_221_OFF_Mux0 : &TESLA_221_OFF_Mux1;
+        break;
+      case 1:
+        t_221 = (idx == 0) ? &TESLA_221_DRIVE_Mux0 : &TESLA_221_DRIVE_Mux1;
+        break;
+      case 2:
+        t_221 = (idx == 0) ? &TESLA_221_ACCESSORY_Mux0 : &TESLA_221_ACCESSORY_Mux1;
+        break;
+      case 3:
+        t_221 = (idx == 0) ? &TESLA_221_GOING_DOWN_Mux0 : &TESLA_221_GOING_DOWN_Mux1;
+        break;
+      default:
+        t_221 = nullptr;
+        break;
+    }
+
+    if (t_221) {
+      CAN_frame sf_221 = *t_221;
+      generateMuxFrameCounterChecksum(sf_221, frameCounter_TESLA_221, 52, 4, 56, 8);
+      transmit_can_frame(&sf_221);
+      //Increment frame counter
+      frameCounter_TESLA_221 = (frameCounter_TESLA_221 + 1) % 16;
+    }
+
+    /*
+    if (vehicleState == 1) {
       switch (muxNumber_TESLA_221) {
         case 0:
           generateMuxFrameCounterChecksum(TESLA_221_DRIVE_Mux0, frameCounter_TESLA_221, 52, 4, 56, 8);
           transmit_can_frame(&TESLA_221_DRIVE_Mux0);
-          muxNumber_TESLA_221++;
+          muxNumber_TESLA_221 = 1;
           break;
         case 1:
           generateMuxFrameCounterChecksum(TESLA_221_DRIVE_Mux1, frameCounter_TESLA_221, 52, 4, 56, 8);
@@ -1863,12 +1955,12 @@ void TeslaBattery::transmit_can(unsigned long currentMillis) {
           break;
       }
     }
-    if (vehicleState == ACCESSORY) {
+    if (vehicleState == 2) {
       switch (muxNumber_TESLA_221) {
         case 0:
           generateMuxFrameCounterChecksum(TESLA_221_ACCESSORY_Mux0, frameCounter_TESLA_221, 52, 4, 56, 8);
           transmit_can_frame(&TESLA_221_ACCESSORY_Mux0);
-          muxNumber_TESLA_221++;
+          muxNumber_TESLA_221 = 1;
           break;
         case 1:
           generateMuxFrameCounterChecksum(TESLA_221_ACCESSORY_Mux1, frameCounter_TESLA_221, 52, 4, 56, 8);
@@ -1879,12 +1971,12 @@ void TeslaBattery::transmit_can(unsigned long currentMillis) {
           break;
       }
     }
-    if (vehicleState == GOING_DOWN) {
+    if (vehicleState == 3) {
       switch (muxNumber_TESLA_221) {
         case 0:
           generateMuxFrameCounterChecksum(TESLA_221_GOING_DOWN_Mux0, frameCounter_TESLA_221, 52, 4, 56, 8);
           transmit_can_frame(&TESLA_221_GOING_DOWN_Mux0);
-          muxNumber_TESLA_221++;
+          muxNumber_TESLA_221 = 1;
           break;
         case 1:
           generateMuxFrameCounterChecksum(TESLA_221_GOING_DOWN_Mux1, frameCounter_TESLA_221, 52, 4, 56, 8);
@@ -1895,12 +1987,12 @@ void TeslaBattery::transmit_can(unsigned long currentMillis) {
           break;
       }
     }
-    if (vehicleState == CAR_OFF) {
+    if (vehicleState == 0) {
       switch (muxNumber_TESLA_221) {
         case 0:
           generateMuxFrameCounterChecksum(TESLA_221_OFF_Mux0, frameCounter_TESLA_221, 52, 4, 56, 8);
           transmit_can_frame(&TESLA_221_OFF_Mux0);
-          muxNumber_TESLA_221++;
+          muxNumber_TESLA_221 = 1;
           break;
         case 1:
           generateMuxFrameCounterChecksum(TESLA_221_OFF_Mux1, frameCounter_TESLA_221, 52, 4, 56, 8);
@@ -1913,7 +2005,7 @@ void TeslaBattery::transmit_can(unsigned long currentMillis) {
     }
     //Generate next new frame
     frameCounter_TESLA_221 = (frameCounter_TESLA_221 + 1) % 16;
-
+*/
     //0x3C2 VCLEFT_switchStatus
     transmit_can_frame(muxNumber_TESLA_3C2 == 0 ? &TESLA_3C2_Mux0 : &TESLA_3C2_Mux1);
     muxNumber_TESLA_3C2 = !muxNumber_TESLA_3C2;  // Flip between sending Mux0 and Mux1 on each pass
@@ -1953,6 +2045,35 @@ void TeslaBattery::transmit_can(unsigned long currentMillis) {
     //0x2E8 EPBR_status
     transmit_can_frame(&TESLA_2E8);
     //0x7FF GTW_carConfig
+    const CAN_frame* t_7FF = nullptr;
+    uint8_t idx = muxNumber_TESLA_7FF;
+    muxNumber_TESLA_7FF = (idx == 4) ? 0 : static_cast<uint8_t>(idx + 1);
+
+    switch (idx) {
+      case 0:
+        t_7FF = &TESLA_7FF_Mux1;
+        break;
+      case 1:
+        t_7FF = &TESLA_7FF_Mux2;
+        break;
+      case 2:
+        t_7FF = &TESLA_7FF_Mux3;
+        break;
+      case 3:
+        t_7FF = &TESLA_7FF_Mux4;
+        break;
+      case 4:
+        t_7FF = &TESLA_7FF_Mux5;
+        break;
+      default:
+        break;
+    }
+
+    if (t_7FF) {
+      CAN_frame sf_7FF = *t_7FF;
+      transmit_can_frame(&sf_7FF);
+    }
+    /*
     switch (muxNumber_TESLA_7FF) {
       case 0:
         transmit_can_frame(&TESLA_7FF_Mux1);
@@ -1977,7 +2098,7 @@ void TeslaBattery::transmit_can(unsigned long currentMillis) {
       default:
         break;
     }
-
+*/
     //Generate next frames
     generateTESLA_229(TESLA_229);
     generateFrameCounterChecksum(TESLA_2A8, 52, 4, 56, 8);
@@ -2162,12 +2283,17 @@ void TeslaBattery::transmit_can(unsigned long currentMillis) {
     transmit_can_frame(&TESLA_293);
     transmit_can_frame(&TESLA_313);
     transmit_can_frame(&TESLA_333);
+    const CAN_frame* sf_334 = TESLA_334_INITIAL_SENT ? &TESLA_334 : &TESLA_334_INITIAL;
+    transmit_can_frame(sf_334);
+    TESLA_334_INITIAL_SENT = true;
+    /*
     if (TESLA_334_INITIAL_SENT == false) {
       transmit_can_frame(&TESLA_334_INITIAL);
       TESLA_334_INITIAL_SENT = true;
     } else {
       transmit_can_frame(&TESLA_334);
     }
+    */
     transmit_can_frame(&TESLA_3B3);
     transmit_can_frame(&TESLA_55A);
 
