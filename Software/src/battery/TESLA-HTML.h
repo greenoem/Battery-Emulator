@@ -185,6 +185,7 @@ class TeslaHtmlRenderer : public BatteryHtmlRenderer {
     static const char* Fault[] = {"NOT_ACTIVE", "ACTIVE"};
 
     //Main battery info
+    /*
     char readableBatterySerialNumber[15];  // One extra space for null terminator
     memcpy(readableBatterySerialNumber, datalayer_extended.tesla.battery_serialNumber,
            sizeof(datalayer_extended.tesla.battery_serialNumber));
@@ -202,6 +203,7 @@ class TeslaHtmlRenderer : public BatteryHtmlRenderer {
     readablePCSPartNumber[13] = '\0';  // Null terminate the string
     content += "<h4>PCS Part Number: " + String(readablePCSPartNumber) + "</h4>";
     content += "<h4>Battery Manufacture Date: " + String(datalayer_extended.tesla.battery_manufactureDate) + "</h4>";
+    */
     content += "<h4>Battery Pack Mass: " + String(packMass) + " KG</h4>";
     //0x3D2 978 BMS_kwhCounter
     content += "<h4>Battery Total Discharge: " + String(total_discharge) + " kWh</h4>";
@@ -267,12 +269,14 @@ class TeslaHtmlRenderer : public BatteryHtmlRenderer {
     content += "<h4>BMS HV State: " + String(BMS_hvState[datalayer_extended.tesla.BMS_hvState]) + "</h4>";
     content += "<h4>BMS UI Charge Status: " + String(BMS_uiChargeStatus[datalayer_extended.tesla.BMS_uiChargeStatus]) +
                "</h4>";
+    /*
     content += "<h4>BMS_buildConfigId: " + String(datalayer_extended.tesla.BMS_info_buildConfigId) + "</h4>";
     content += "<h4>BMS_hardwareId: " + String(datalayer_extended.tesla.BMS_info_hardwareId) + "</h4>";
     content += "<h4>BMS_componentId: " + String(datalayer_extended.tesla.BMS_info_componentId) + "</h4>";
     content += "<h4>BMS_usageId: " + String(datalayer_extended.tesla.BMS_info_usageId) + "</h4>";
     content += "<h4>BMS_subUsageId: " + String(datalayer_extended.tesla.BMS_info_subUsageId) + "</h4>";
     content += "<h4>BMS PCS PWM Enabled: " + String(Fault[datalayer_extended.tesla.BMS_pcsPwmEnabled]) + "</h4>";
+    */
     //0x292 658 BMS_socStates
     content += "<h4>Battery Beginning of Life: " + String(beginning_of_life) + " kWh</h4>";
     content += "<h4>Battery SOC UI: " + String(soc_ui) + " </h4>";
@@ -302,12 +306,14 @@ class TeslaHtmlRenderer : public BatteryHtmlRenderer {
     content += "<h4>Brick Temp Min Num: " + String(datalayer_extended.tesla.battery_BrickTempMinNum) + " </h4>";
     //content += "<h4>Brick Model Temp Max: " + String(BrickModelTMax) + " C</h4>";// Not giving useable data
     //content += "<h4>Brick Model Temp Min: " + String(BrickModelTMin) + " C</h4>";// Not giving useable data
+    /*
     //0x2A4 676 PCS_thermalStatus
     content += "<h4>PCS dcdc Temp: " + String(PCS_dcdcTemp) + " DegC</h4>";
     content += "<h4>PCS Ambient Temp: " + String(PCS_ambientTemp) + " DegC</h4>";
     content += "<h4>PCS Chg PhA Temp: " + String(PCS_chgPhATemp) + " DegC</h4>";
     content += "<h4>PCS Chg PhB Temp: " + String(PCS_chgPhBTemp) + " DegC</h4>";
     content += "<h4>PCS Chg PhC Temp: " + String(PCS_chgPhCTemp) + " DegC</h4>";
+    */
     //0x252 594 BMS_powerAvailable
     content += "<h4>Max Regen Power: " + String(BMS_maxRegenPower) + " kW</h4>";
     content += "<h4>Max Discharge Power: " + String(BMS_maxDischargePower) + " kW</h4>";
@@ -317,6 +323,7 @@ class TeslaHtmlRenderer : public BatteryHtmlRenderer {
     content +=
         "<h4>Power Limit State: " + String(BMS_powerLimitState[datalayer_extended.tesla.BMS_powerLimitState]) + "</h4>";
     //content += "<h4>Inverter TQF: " + String(datalayer_extended.tesla.BMS_inverterTQF) + "</h4>"; // Not giving useable data
+    /*
     //0x312 786 BMS_thermalStatus
     content += "<h4>Power Dissipation: " + String(BMS_powerDissipation) + " kW</h4>";
     content += "<h4>Flow Request: " + String(BMS_flowRequest) + " LPM</h4>";
@@ -434,6 +441,7 @@ class TeslaHtmlRenderer : public BatteryHtmlRenderer {
     content +=
         "<h4>HVP_shuntThermistorMia: " + String(noYes[datalayer_extended.tesla.HVP_shuntThermistorMia]) + "</h4>";
     content += "<h4>HVP_shuntHwMia: " + String(noYes[datalayer_extended.tesla.HVP_shuntHwMia]) + "</h4>";
+    */
     //content += "<h4>HVP_fcLinkVoltage: " + String(HVP_fcLinkVoltage) + " V</h4>"; // Not giving useable data
     //content += "<h4>HVP_packNegativeV: " + String(HVP_packNegativeV) + " V</h4>"; // Not giving useable data
     //content += "<h4>HVP_packPositiveV: " + String(HVP_packPositiveV) + " V</h4>"; // Not giving useable data

@@ -511,6 +511,12 @@ void TeslaBattery::
   } else {
     clear_event(EVENT_CONTACTOR_WELDED);
   }
+  // Events: Test for vehicle state not being in DRIVE
+  if (vehicleState != 1) {  // Not DRIVE
+    set_event_latched(EVENT_CAR_OFF, 0);
+  } else {
+    clear_event(EVENT_CAR_OFF);
+  }
 
   if (user_selected_tesla_GTW_chassisType > 1) {  //{{0, "Model S"}, {1, "Model X"}, {2, "Model 3"}, {3, "Model Y"}};
     // Autodetect algorithm for chemistry on 3/Y packs.
@@ -603,6 +609,7 @@ void TeslaBattery::
   datalayer_extended.tesla.battery_packCtrsRequestStatus = battery_packCtrsRequestStatus;
   datalayer_extended.tesla.battery_packCtrsResetRequestRequired = battery_packCtrsResetRequestRequired;
   datalayer_extended.tesla.battery_dcLinkAllowedToEnergize = battery_dcLinkAllowedToEnergize;
+  /*
   //0x72A
   if (datalayer_extended.tesla.battery_serialNumber[0] == 0 && parsed_battery_serialNumber &&
       battery_serialNumber[13] != 0) {
@@ -621,6 +628,7 @@ void TeslaBattery::
   if (datalayer_extended.tesla.PCS_partNumber[0] == 0 && parsed_PCS_partNumber && PCS_partNumber[11] != 0) {
     memcpy(datalayer_extended.tesla.PCS_partNumber, PCS_partNumber, sizeof(PCS_partNumber));
   }
+  */
   //0x2B4
   datalayer_extended.tesla.battery_dcdcLvBusVolt = battery_dcdcLvBusVolt;
   datalayer_extended.tesla.battery_dcdcHvBusVolt = battery_dcdcHvBusVolt;
@@ -644,7 +652,7 @@ void TeslaBattery::
   datalayer.battery.status.total_discharged_battery_Wh = battery_total_discharge;
   datalayer.battery.status.total_charged_battery_Wh = battery_total_charge;
   //0x392
-  datalayer_extended.tesla.battery_moduleType = battery_moduleType;
+  //datalayer_extended.tesla.battery_moduleType = battery_moduleType;
   datalayer_extended.tesla.battery_packMass = battery_packMass;
   datalayer_extended.tesla.battery_platformMaxBusVoltage = battery_platformMaxBusVoltage;
   //0x2D2
@@ -676,6 +684,7 @@ void TeslaBattery::
   datalayer_extended.tesla.BMS_chgPowerAvailable = BMS_chgPowerAvailable;
   datalayer_extended.tesla.BMS_pcsPwmEnabled = BMS_pcsPwmEnabled;
   //0x224
+  /*
   datalayer_extended.tesla.PCS_dcdcPrechargeStatus = PCS_dcdcPrechargeStatus;
   datalayer_extended.tesla.PCS_dcdc12VSupportStatus = PCS_dcdc12VSupportStatus;
   datalayer_extended.tesla.PCS_dcdcHvBusDischargeStatus = PCS_dcdcHvBusDischargeStatus;
@@ -691,6 +700,7 @@ void TeslaBattery::
   datalayer_extended.tesla.PCS_dcdcSupportingFixedLvTarget = PCS_dcdcSupportingFixedLvTarget;
   datalayer_extended.tesla.PCS_dcdcPrechargeRestartCnt = PCS_dcdcPrechargeRestartCnt;
   datalayer_extended.tesla.PCS_dcdcInitialPrechargeSubState = PCS_dcdcInitialPrechargeSubState;
+  */
   //0x252
   datalayer_extended.tesla.BMS_maxRegenPower = BMS_maxRegenPower;
   datalayer_extended.tesla.BMS_maxDischargePower = BMS_maxDischargePower;
@@ -702,19 +712,20 @@ void TeslaBattery::
   //Via UDS
   //datalayer_extended.tesla.BMS_info_buildConfigId = BMS_info_buildConfigId;
   //0x300
-  datalayer_extended.tesla.BMS_info_buildConfigId = BMS_info_buildConfigId;
-  datalayer_extended.tesla.BMS_info_hardwareId = BMS_info_hardwareId;
-  datalayer_extended.tesla.BMS_info_componentId = BMS_info_componentId;
+  //datalayer_extended.tesla.BMS_info_buildConfigId = BMS_info_buildConfigId;
+  //datalayer_extended.tesla.BMS_info_hardwareId = BMS_info_hardwareId;
+  //datalayer_extended.tesla.BMS_info_componentId = BMS_info_componentId;
   //datalayer_extended.tesla.BMS_info_pcbaId = BMS_info_pcbaId;
   //datalayer_extended.tesla.BMS_info_assemblyId = BMS_info_assemblyId;
-  datalayer_extended.tesla.BMS_info_usageId = BMS_info_usageId;
-  datalayer_extended.tesla.BMS_info_subUsageId = BMS_info_subUsageId;
+  //datalayer_extended.tesla.BMS_info_usageId = BMS_info_usageId;
+  //datalayer_extended.tesla.BMS_info_subUsageId = BMS_info_subUsageId;
   //datalayer_extended.tesla.BMS_info_platformType = BMS_info_platformType;
   //datalayer_extended.tesla.BMS_info_appCrc = BMS_info_appCrc;
   //datalayer_extended.tesla.BMS_info_bootGitHash = BMS_info_bootGitHash;
   //datalayer_extended.tesla.BMS_info_bootUdsProtoVersion = BMS_info_bootUdsProtoVersion;
   //datalayer_extended.tesla.BMS_info_bootCrc = BMS_info_bootCrc;
   //0x312
+  /*
   datalayer_extended.tesla.BMS_powerDissipation = BMS_powerDissipation;
   datalayer_extended.tesla.BMS_flowRequest = BMS_flowRequest;
   datalayer_extended.tesla.BMS_inletActiveCoolTargetT = BMS_inletActiveCoolTargetT;
@@ -724,7 +735,7 @@ void TeslaBattery::
   datalayer_extended.tesla.BMS_packTMax = BMS_packTMax;
   datalayer_extended.tesla.BMS_pcsNoFlowRequest = BMS_pcsNoFlowRequest;
   datalayer_extended.tesla.BMS_noFlowRequest = BMS_noFlowRequest;
-  //0x3C4
+   //0x3C4
   datalayer_extended.tesla.PCS_info_buildConfigId = PCS_info_buildConfigId;
   datalayer_extended.tesla.PCS_info_hardwareId = PCS_info_hardwareId;
   datalayer_extended.tesla.PCS_info_componentId = PCS_info_componentId;
@@ -816,10 +827,12 @@ void TeslaBattery::
   datalayer_extended.tesla.HVP_shuntAuxCurrentStatus = HVP_shuntAuxCurrentStatus;
   datalayer_extended.tesla.HVP_shuntBarTempStatus = HVP_shuntBarTempStatus;
   datalayer_extended.tesla.HVP_shuntAsicTempStatus = HVP_shuntAsicTempStatus;
+  */
 
   //Safety checks for CAN message sending
-  if ((datalayer.system.status.inverter_allows_contactor_closing == true) &&
-      (datalayer.battery.status.bms_status != FAULT) && (!datalayer.system.settings.equipment_stop_active)) {
+  if ((datalayer.battery.status.bms_status != FAULT) && (!datalayer.system.settings.equipment_stop_active)) {
+    //if ((datalayer.system.status.inverter_allows_contactor_closing == true) &&
+    //    (datalayer.battery.status.bms_status != FAULT) && (!datalayer.system.settings.equipment_stop_active)) {
     // Carry on: 0x221 DRIVE state & reset power down timer
     vehicleState = 1;
     powerDownSeconds = 9;
@@ -1000,6 +1013,7 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
       BMS_ecuLogUploadRequest = ((rx_frame.data.u8[6] >> 6) & (0x03U));
       BMS_minPackTemperature = (rx_frame.data.u8[7] & (0xFFU));  //56|8@1+ (0.5,-40) [0|0] "DegC
       break;
+    /*
     case 0x224:  //548 PCS_dcdcStatus:
       datalayer.battery.status.CAN_battery_still_alive = CAN_STILL_ALIVE;
       PCS_dcdcPrechargeStatus = (rx_frame.data.u8[0] & (0x03U));              //0 "IDLE" 1 "ACTIVE" 2 "FAULTED" ;
@@ -1028,6 +1042,7 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
           ((rx_frame.data.u8[7] >> 3) &
            (0x1FU));  //0 "PWR_UP_INIT" 1 "STANDBY" 2 "12V_SUPPORT_ACTIVE" 3 "DIS_HVBUS" 4 "PCHG_FAST_DIS_HVBUS" 5 "PCHG_SLOW_DIS_HVBUS" 6 "PCHG_DWELL_CHARGE" 7 "PCHG_DWELL_WAIT" 8 "PCHG_DI_RECOVERY_WAIT" 9 "PCHG_ACTIVE" 10 "PCHG_FLT_FAST_DIS_HVBUS" 11 "SHUTDOWN" 12 "12V_SUPPORT_FAULTED" 13 "DIS_HVBUS_FAULTED" 14 "PCHG_FAULTED" 15 "CLEAR_FAULTS" 16 "FAULTED" 17 "NUM" ;
       break;
+    */
     case 0x252:  //Limit //594 BMS_powerAvailable:
       datalayer.battery.status.CAN_battery_still_alive = CAN_STILL_ALIVE;
       BMS_maxRegenPower = ((rx_frame.data.u8[1] << 8) |
@@ -1117,6 +1132,7 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
         battery_BrickModelTMin = (rx_frame.data.u8[5] & (0xFFU));  //to datalayer_extended
       }
       break;
+    /*
     case 0x312:  // 786 BMS_thermalStatus
       datalayer.battery.status.CAN_battery_still_alive = CAN_STILL_ALIVE;
       BMS_powerDissipation =
@@ -1205,6 +1221,7 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
                                         (rx_frame.data.u8[1] & (0xFFU));  // m22 : 8|24@1+ (0.01,0) [0|0] "kWh"  X
       }
       break;
+    */
     case 0x401:  // Cell stats  //BrickVoltages
       datalayer.battery.status.CAN_battery_still_alive = CAN_STILL_ALIVE;
       mux = (rx_frame.data.u8[0]);  //MultiplexSelector M : 0|8@1+ (1,0) [0|0] ""
@@ -1278,20 +1295,23 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
       datalayer.battery.status.CAN_battery_still_alive = CAN_STILL_ALIVE;
       mux = (rx_frame.data.u8[0] & (0xFF));
       if (mux == 1) {
-        battery_packConfigMultiplexer = (rx_frame.data.u8[0] & (0xff));  //0|8@1+ (1,0) [0|1] ""
-        battery_moduleType =
-            (rx_frame.data.u8[1] &
-             (0x07));  //8|3@1+ (1,0) [0|4] ""//0 "UNKNOWN" 1 "E3_NCT" 2 "E1_NCT" 3 "E3_CT" 4 "E1_CT" 5 "E1_CP" ;//to datalayer_extended
+        //battery_packConfigMultiplexer = (rx_frame.data.u8[0] & (0xff));  //0|8@1+ (1,0) [0|1] ""
+        //battery_moduleType =
+        //(rx_frame.data.u8[1] &
+        //(0x07));  //8|3@1+ (1,0) [0|4] ""//0 "UNKNOWN" 1 "E3_NCT" 2 "E1_NCT" 3 "E3_CT" 4 "E1_CT" 5 "E1_CP" ;//to datalayer_extended
         battery_packMass = (rx_frame.data.u8[2]) + 300;  //16|8@1+ (1,300) [342|469] "kg"
         battery_platformMaxBusVoltage =
             (((rx_frame.data.u8[4] & 0x03) << 8) | (rx_frame.data.u8[3]));  //24|10@1+ (0.1,375) [0|0] "V"
       }
+      /*
       if (mux == 0) {
         battery_reservedConfig =
             (rx_frame.data.u8[1] &
              (0x1F));  //8|5@1+ (1,0) [0|31] ""//0 "BMS_CONFIG_0" 1 "BMS_CONFIG_1" 10 "BMS_CONFIG_10" 11 "BMS_CONFIG_11" 12 "BMS_CONFIG_12" 13 "BMS_CONFIG_13" 14 "BMS_CONFIG_14" 15 "BMS_CONFIG_15" 16 "BMS_CONFIG_16" 17 "BMS_CONFIG_17" 18 "BMS_CONFIG_18" 19 "BMS_CONFIG_19" 2 "BMS_CONFIG_2" 20 "BMS_CONFIG_20" 21 "BMS_CONFIG_21" 22 "BMS_CONFIG_22" 23 "BMS_CONFIG_23" 24 "BMS_CONFIG_24" 25 "BMS_CONFIG_25" 26 "BMS_CONFIG_26" 27 "BMS_CONFIG_27" 28 "BMS_CONFIG_28" 29 "BMS_CONFIG_29" 3 "BMS_CONFIG_3" 30 "BMS_CONFIG_30" 31 "BMS_CONFIG_31" 4 "BMS_CONFIG_4" 5 "BMS_CONFIG_5" 6 "BMS_CONFIG_6" 7 "BMS_CONFIG_7" 8 "BMS_CONFIG_8" 9 "BMS_CONFIG_9" ;
       }
+      */
       break;
+    /*
     case 0x7AA:  //1962 HVP_debugMessage:
       datalayer.battery.status.CAN_battery_still_alive = CAN_STILL_ALIVE;
       mux = (rx_frame.data.u8[0] & (0x0FU));
@@ -1547,6 +1567,7 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
         BMS_a180_SW_ECU_reset_blocked = ((rx_frame.data.u8[7] >> 7) & (0x01U));     //63|1@1+ (1,0) [0|0] ""  X
       }
       break;
+    /*
     case 0x72A:  //BMS_serialNumber
       datalayer.battery.status.CAN_battery_still_alive = CAN_STILL_ALIVE;
       //Pack serial number in ASCII: 00 54 47 33 32 31 32 30 (mux 0) .TG32120 + 01 32 30 30 33 41 48 58 (mux 1) .2003AHX = TG321202003AHX
@@ -1608,7 +1629,6 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
           BMS_info_subUsageId = static_cast<uint16_t>(extract_signal_value(rx_frame.data.u8, 48, 16));
         }
       }
-      /*
       if (rx_frame.data.u8[0] == 0x0D) { // Mux 13: APP_CRC
         if (BMS_info_platformType == 0) {BMS_info_platformType = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 8, 8));}
         if (BMS_info_appCrc == 0) {BMS_info_appCrc = static_cast<uint32_t>(extract_signal_value(rx_frame.data.u8, 32, 32));}
@@ -1620,8 +1640,8 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
         if (BMS_info_bootUdsProtoVersion == 0) {BMS_info_bootUdsProtoVersion = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 8, 8));}
         if (BMS_info_bootCrc == 0) {BMS_info_bootCrc = static_cast<uint32_t>(extract_signal_value(rx_frame.data.u8, 32, 32));}
       }
-      */
       break;
+    /*
     case 0x3C4:  //PCS_info
       datalayer.battery.status.CAN_battery_still_alive = CAN_STILL_ALIVE;
       //Display internal PCS info and other build/version data
@@ -1636,7 +1656,6 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
           PCS_info_componentId = static_cast<uint16_t>(extract_signal_value(rx_frame.data.u8, 48, 16));
         }
       }
-      /*
       if (rx_frame.data.u8[0] == 0x0B) { // Mux 11: PCBAID_ASSYID_USAGEID
         if (PCS_info_pcbaId == 0) {PCS_info_pcbaId = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 16, 8));}
         if (PCS_info_assemblyId == 0) {PCS_info_assemblyId = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 24, 8));}
@@ -1657,7 +1676,6 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
         PCS_info_bootUdsProtoVersion = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 8, 8));
         PCS_info_bootCrc = static_cast<uint32_t>(extract_signal_value(rx_frame.data.u8, 32, 32));
       }
-      */
       //PCS Part Number in ASCII
       if (rx_frame.data.u8[0] == 0x19 && !parsed_PCS_partNumber) {  // Part number 1-7
         PCS_partNumber[0] = rx_frame.data.u8[1];
@@ -1680,6 +1698,7 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
         parsed_PCS_partNumber = true;
       }
       break;
+    /*
     case 0x310:  //HVP_info
       datalayer.battery.status.CAN_battery_still_alive = CAN_STILL_ALIVE;
       //Display internal HVP info and other build/version data
@@ -1712,8 +1731,8 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
         HVP_info_bootUdsProtoVersion = static_cast<uint8_t>(extract_signal_value(rx_frame.data.u8, 8, 8));
         HVP_info_bootCrc = static_cast<uint32_t>(extract_signal_value(rx_frame.data.u8, 32, 32));
       }
-      */
       break;
+      */
     case 0x612:  // CAN UDS responses for BMS
       datalayer.battery.status.CAN_battery_still_alive = CAN_STILL_ALIVE;
       //BMS Query

@@ -133,6 +133,7 @@ void init_events(void) {
   events.entries[EVENT_GPIO_CONFLICT].level = EVENT_LEVEL_ERROR;
   events.entries[EVENT_GPIO_NOT_DEFINED].level = EVENT_LEVEL_ERROR;
   events.entries[EVENT_BATTERY_TEMP_DEVIATION_HIGH].level = EVENT_LEVEL_WARNING;
+  events.entries[EVENT_CAR_OFF].level = EVENT_LEVEL_INFO;
 }
 
 void set_event(EVENTS_ENUM_TYPE event, uint8_t data) {
@@ -383,6 +384,8 @@ String get_event_message_string(EVENTS_ENUM_TYPE event) {
     case EVENT_GPIO_NOT_DEFINED:
       return "Missing GPIO Assignment: The component '" + esp32hal->failed_allocator() +
              "' requires a GPIO pin that isn't configured. Please define a valid pin number in your settings.";
+    case EVENT_CAR_OFF:
+      return "Vehicle emulated state changed from DRIVE.";
     default:
       return "";
   }
