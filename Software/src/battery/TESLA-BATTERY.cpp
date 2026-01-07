@@ -502,6 +502,14 @@ void TeslaBattery::
 
   datalayer.battery.status.cell_min_voltage_mV = battery_cell_min_v;
 
+  if (datalayer_extended.tesla.BMS_max_voltage != 0) {
+    datalayer.battery.info.max_design_voltage_dV = datalayer_extended.tesla.BMS_max_voltage;
+  }
+
+  if (datalayer_extended.tesla.BMS_min_voltage != 0) {
+    datalayer.battery.info.min_design_voltage_dV = datalayer_extended.tesla.BMS_min_voltage;
+  }
+
   /* Value mapping is completed. Start to check all safeties */
 
   //INTERNAL_OPEN_FAULT - Someone disconnected a high voltage cable while battery was in use
@@ -540,14 +548,30 @@ void TeslaBattery::
 
     //Once cell chemistry is determined, set maximum and minimum total pack voltage safety limits
     if (datalayer.battery.info.chemistry == battery_chemistry_enum::LFP) {
-      datalayer.battery.info.max_design_voltage_dV = MAX_PACK_VOLTAGE_3Y_LFP;
-      datalayer.battery.info.min_design_voltage_dV = MIN_PACK_VOLTAGE_3Y_LFP;
+      if (datalayer_extended.tesla.BMS_max_voltage != 0) {
+        datalayer.battery.info.max_design_voltage_dV = datalayer_extended.tesla.BMS_max_voltage;
+      } else {
+        datalayer.battery.info.max_design_voltage_dV = MAX_PACK_VOLTAGE_3Y_LFP;
+      }
+      if (datalayer_extended.tesla.BMS_min_voltage != 0) {
+        datalayer.battery.info.min_design_voltage_dV = datalayer_extended.tesla.BMS_min_voltage;
+      } else {
+        datalayer.battery.info.min_design_voltage_dV = MIN_PACK_VOLTAGE_3Y_LFP;
+      }
       datalayer.battery.info.max_cell_voltage_mV = MAX_CELL_VOLTAGE_LFP;
       datalayer.battery.info.min_cell_voltage_mV = MIN_CELL_VOLTAGE_LFP;
       datalayer.battery.info.max_cell_voltage_deviation_mV = MAX_CELL_DEVIATION_LFP;
     } else {  // NCM/A chemistry
-      datalayer.battery.info.max_design_voltage_dV = MAX_PACK_VOLTAGE_3Y_NCMA;
-      datalayer.battery.info.min_design_voltage_dV = MIN_PACK_VOLTAGE_3Y_NCMA;
+      if (datalayer_extended.tesla.BMS_max_voltage != 0) {
+        datalayer.battery.info.max_design_voltage_dV = datalayer_extended.tesla.BMS_max_voltage;
+      } else {
+        datalayer.battery.info.max_design_voltage_dV = MAX_PACK_VOLTAGE_3Y_NCMA;
+      }
+      if (datalayer_extended.tesla.BMS_min_voltage != 0) {
+        datalayer.battery.info.min_design_voltage_dV = datalayer_extended.tesla.BMS_min_voltage;
+      } else {
+        datalayer.battery.info.min_design_voltage_dV = MIN_PACK_VOLTAGE_3Y_NCMA;
+      }
       datalayer.battery.info.max_cell_voltage_mV = MAX_CELL_VOLTAGE_NCA_NCM;
       datalayer.battery.info.min_cell_voltage_mV = MIN_CELL_VOLTAGE_NCA_NCM;
       datalayer.battery.info.max_cell_voltage_deviation_mV = MAX_CELL_DEVIATION_NCA_NCM;
