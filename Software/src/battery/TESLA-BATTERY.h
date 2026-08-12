@@ -31,6 +31,13 @@ class TeslaBattery : public CanBattery {
   virtual void setup();
   virtual void handle_incoming_can_frame(CAN_frame rx_frame);
   virtual void update_values();
+  void set_balancing_status(balancing_status_enum new_status);
+
+  /* Observed BMS_balanceState values. The names are ours, not Tesla's,
+   * and both values are currently guessed from logged behaviour */
+  static constexpr uint8_t BALANCE_STATE_IDLE = 0;
+  static constexpr uint8_t BALANCE_STATE_BALANCING = 1;
+  static constexpr uint8_t BALANCE_STATE_VSH_TEST = 12;
   virtual void transmit_can(unsigned long currentMillis);
 
   bool supports_clear_isolation() { return true; }
@@ -510,6 +517,13 @@ class TeslaBattery : public CanBattery {
   uint16_t battery_cell_max_v = 3300;
   uint16_t battery_cell_min_v = 3300;
   bool cellvoltagesRead = false;
+
+  //0x372: 882 BMS_log1 mux 3, 0x3B2: 946 BMS_log2 mux 35/39 -- balancing tracking
+  uint8_t BMS_balanceState = BALANCE_STATE_IDLE;
+  bool BMS_vshTestNeeded = false;
+  bool BMS_balanceStateUnknown = false;
+  uint16_t BMS_balanceTimeThisCycle_s = 0;
+  uint32_t BMS_cumulativeBleedTime_s = 0;
   //0x3d2: 978 BMS_kwhCounter
   uint32_t battery_total_discharge = 0;
   uint32_t battery_total_charge = 0;

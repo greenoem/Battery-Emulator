@@ -668,6 +668,14 @@ struct DATALAYER_INFO_TESLA {
   uint8_t BMS_contactorState;
   uint8_t BMS_state;
   uint8_t BMS_hvState;
+
+  // BMS_balanceState
+  uint8_t BMS_balanceState;
+  bool BMS_vshTestActive;
+  bool BMS_balanceStateUnknown;
+  uint16_t BMS_balanceTimeThisCycle_s;
+  uint32_t BMS_cumulativeBleedTime_s;
+  
   uint8_t BMS_notEnoughPowerForHeatPump;
   uint8_t BMS_powerLimitState;
   uint8_t BMS_inverterTQF;

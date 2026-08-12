@@ -690,6 +690,28 @@ void TeslaBattery::
   datalayer_extended.tesla.BMS_contactorState = BMS_contactorState;
   datalayer_extended.tesla.BMS_state = BMS_state;
   datalayer_extended.tesla.BMS_hvState = BMS_hvState;
+
+  //Experimental Balancing Monitoring
+  //Tesla does not broadcast per-cell bleed status on the vehicle bus
+  //However, we should be able to query per-brick bleed time via UDS in a future PR
+  //Balancing *does* happen with contactors closed, not observed in DRIVE, just SUPPORT (ACCESSORY)
+  //This is just a first experimental step to monitor behaviour/stats
+  datalayer_extended.tesla.BMS_balanceState = BMS_balanceState;
+  datalayer_extended.tesla.BMS_vshTestActive = (BMS_balanceState == BALANCE_STATE_VSH_TEST);
+  datalayer_extended.tesla.BMS_balanceStateUnknown = BMS_balanceStateUnknown;
+  datalayer_extended.tesla.BMS_balanceTimeThisCycle_s = BMS_balanceTimeThisCycle_s;
+  datalayer_extended.tesla.BMS_cumulativeBleedTime_s = BMS_cumulativeBleedTime_s;
+
+  if (BMS_balanceStateUnknown) {
+    set_balancing_status(BALANCING_STATUS_UNKNOWN);
+  } else if (BMS_balanceState == BALANCE_STATE_BALANCING) {
+    set_balancing_status(BALANCING_STATUS_ACTIVE);
+  } else {
+    //The VSH test switches on the bleed FETs - but is a diagnostic, not balancing
+    //Therefore it is reported as READY with the separate vshTestActive flag raised.
+    set_balancing_status(BALANCING_STATUS_READY);
+  }
+
   datalayer_extended.tesla.BMS_uiChargeStatus = BMS_uiChargeStatus;
   datalayer_extended.tesla.BMS_diLimpRequest = BMS_diLimpRequest;
   datalayer_extended.tesla.BMS_chgPowerAvailable = BMS_chgPowerAvailable;
@@ -1175,6 +1197,20 @@ void TeslaBattery::
                  (battery_dcdcLvBusVolt * 0.0390625), (battery_dcdcLvOutputCurrent * 0.1));
 }
 
+/* Mirrors the Nissan Leaf handler: fire the events only on a real edge, and never
+ * announce an end for the initial UNKNOWN -> READY settle at boot. */
+void TeslaBattery::set_balancing_status(balancing_status_enum new_status) {
+  if (new_status == datalayer_battery->status.balancing_status) {
+    return;
+  }
+  if (new_status == BALANCING_STATUS_ACTIVE) {
+    set_event_latched(EVENT_BALANCING_START, 0);
+  } else if (datalayer_battery->status.balancing_status == BALANCING_STATUS_ACTIVE) {
+    set_event(EVENT_BALANCING_END, 0);
+  }
+  datalayer_battery->status.balancing_status = new_status;
+}
+
 void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
   // mux, temp, mux0_read, mux1_read are instance member variables (TESLA-BATTERY.h)
 
@@ -1381,6 +1417,43 @@ void TeslaBattery::handle_incoming_can_frame(CAN_frame rx_frame) {
       battery_total_charge = ((rx_frame.data.u8[7] << 24) | (rx_frame.data.u8[6] << 16) | (rx_frame.data.u8[5] << 8) |
                               rx_frame.data.u8[4]);
       //32|32@1+ (0.001,0) [0|4294970] "kWh"
+      break;
+    case 0x372:  //882 BMS_log1: balancing state lives in mux 3
+      datalayer_battery->status.CAN_battery_still_alive = CAN_STILL_ALIVE;
+      mux = rx_frame.data.u8[0];  //BMS_log1MuxId : 0|8@1+ (1,0)
+      if (mux == 3) {
+        //BMS_balanceState m3 : 8|4@1+ (1,0). Same bit position in the 2025.20.8 and
+        //2026.8.3 DBCs. No VAL_ table is published for this signal in any of them,
+        //so the meanings below come from logged behaviour rather than from Tesla:
+        //  1  balancing engaged -- the only state where BMS_brickBleedByAhMin is
+        //     non-zero, and BMS_cumulativeBleedTime advances 1 s per second.
+        //  12 voltage-sense-harness test -- lasts exactly 2 s, contactors open, and
+        //     drives one brick ~250 mV away from the pack. That is injected stimulus
+        //     from switching the bleed FETs, not a real imbalance.
+        //  0  not balancing.
+        //Anything else means this firmware does not match the frame layout we know,
+        //so flag it rather than guess. That keeps a mis-decode visible instead of
+        //silently reporting a wrong balancing state.
+        BMS_balanceState = (rx_frame.data.u8[1] & 0x0F);
+        BMS_vshTestNeeded = ((rx_frame.data.u8[1] >> 4) & 0x01);  //BMS_vshTestNeeded m3 : 12|1@1+
+        BMS_balanceStateUnknown = (BMS_balanceState != BALANCE_STATE_IDLE) &&
+                                  (BMS_balanceState != BALANCE_STATE_BALANCING) &&
+                                  (BMS_balanceState != BALANCE_STATE_VSH_TEST);
+      }
+      break;
+    case 0x3B2:  //946 BMS_log2: balancing accumulators
+      datalayer_battery->status.CAN_battery_still_alive = CAN_STILL_ALIVE;
+      mux = (rx_frame.data.u8[0] & 0x7F);  //BMS_log2MuxId : 0|7@1+ (1,0)
+      if (mux == 35) {
+        //BMS_balanceTimeThisCycle m35 : 24|16@1+ (0.5,0) "s". Resets when an episode
+        //starts, but is only refreshed every 30 s, so it reads stale just after one
+        //begins. Do not use it to decide whether balancing is active.
+        BMS_balanceTimeThisCycle_s = (((rx_frame.data.u8[4] << 8) | rx_frame.data.u8[3]) / 2);
+      } else if (mux == 39) {
+        //BMS_cumulativeBleedTime m39 : 8|24@1+ (1,0) "s"
+        BMS_cumulativeBleedTime_s = ((uint32_t)rx_frame.data.u8[3] << 16) |
+                                    ((uint32_t)rx_frame.data.u8[2] << 8) | rx_frame.data.u8[1];
+      }
       break;
     case 0x332:  //min/max hist values //BattBrickMinMax:  (tesla-m3-pack-findings fw 2019.20.4.2 names 0x332 = BMS_bmbMinMax)
       datalayer_battery->status.CAN_battery_still_alive = CAN_STILL_ALIVE;
