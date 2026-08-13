@@ -271,19 +271,19 @@ class TeslaHtmlRenderer : public BatteryHtmlRenderer {
     }
     //Experimental balancing status
     if (datalayer_extended.tesla.BMS_balanceStateUnknown) {
-      content += "<h4>Balancing: unknown state " + String(datalayer_extended.tesla.BMS_balanceState) +
+      content += "<h4>Balancing: Unknown state " + String(datalayer_extended.tesla.BMS_balanceState) +
                  " reported</h4>";
     } else if (datalayer_extended.tesla.BMS_vshTestActive) {
       content +=
           "<h4>Balancing: Voltage Sense Harness (VSH) test running</h4>";
     } else if (datalayer.battery.status.balancing_status == BALANCING_STATUS_ACTIVE) {
-      content += "<h4>Balancing: active for " + String(datalayer_extended.tesla.BMS_balanceTimeThisCycle_s) +
+      content += "<h4>Balancing: Active for " + String(datalayer_extended.tesla.BMS_balanceTimeThisCycle_s) +
                  " s this cycle</h4>";
     } else {
-      content += "<h4>Balancing: not active</h4>";
+      content += "<h4>Balancing: Not active</h4>";
     }
-    content += "<h4>Balancing Lifetime Total: " + String(datalayer_extended.tesla.BMS_cumulativeBleedTime_s / 3600) +
-               " h</h4>";
+    content += "<h4>Balancing Total (since last BMS reset/power cycle): " + String(datalayer_extended.tesla.BMS_cumulativeBleedTime_s) +
+               " s</h4>";
     //0x212 530 BMS_status
     content += "<h4>Isolation Resistance: " + String(isolationResistance) + " kOhms</h4>";
     content += "<h4>BMS State: " + String(BMS_state[datalayer_extended.tesla.BMS_state]) + "</h4>";
